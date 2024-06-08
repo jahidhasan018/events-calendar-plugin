@@ -1,0 +1,129 @@
+<?php
+
+namespace Event_Calendar\Includes\Shortcodes;
+
+class EventCalendar {
+
+    public function __construct() {
+        // Register the shortcode
+        add_shortcode('event_calendar', array($this, 'display_event_calendar'));
+    }
+
+    // Method to display the event calendar for the shortcode
+    public function display_event_calendar() {
+        // Get the current month and year
+        $month = date('n');
+        $year = date('Y');
+
+        // Check if the "next" or "previous" button was clicked and update month/year
+        if (isset($_GET['month']) && isset($_GET['year'])) {
+            $month = sanitize_text_field($_GET['month']);
+            $year = sanitize_text_field($_GET['year']);
+        }
+
+        // Get the number of days in the month
+        $numDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+        // Get the first day of the month
+        $firstDay = date('N', strtotime($year . '-' . $month . '-01'));
+
+        // Calculate the previous month and year
+        $prevMonth = $month - 1;
+        $prevYear = $year;
+        if ($prevMonth < 1) {
+            $prevMonth = 12;
+            $prevYear--;
+        }
+
+        // Calculate the next month and year
+        $nextMonth = $month + 1;
+        $nextYear = $year;
+        if ($nextMonth > 12) {
+            $nextMonth = 1;
+            $nextYear++;
+        }
+
+        // Get published events from the 'events' post type
+        $args = array(
+            'post_type'      => 'events',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+        );
+
+        $all_events = get_posts($args);
+        $events = [];
+
+        // Organize events by date
+        foreach ($all_events as $event) {
+            $date = get_post_meta($event->ID, 'event_date', true);
+            $title = $event->post_title;
+            $event_id = $event->ID;
+
+            // If the date key doesn't exist, create a new array
+            if (!isset($events[$date])) {
+                $events[$date] = array(array('title' => $title, 'id' => $event_id));
+            } else {
+                // Append the event to the existing date array
+                $events[$date][] = array('title' => $title, 'id' => $event_id);
+            }
+        }
+
+        // Start output buffering
+        ob_start();
+        ?>
+        <div class="wrap">
+            <div class="evp-nav">
+                <a href="?month=<?php echo esc_attr($prevMonth); ?>&year=<?php echo esc_attr($prevYear); ?>" class="evp-btn">&#8249; <?php esc_html_e( 'Prev', 'events-calendar' ); ?></a>
+                <span class="evp-month-year">
+                    <?php echo esc_html(date('F Y', strtotime($year . '-' . $month . '-01'))); ?>
+                </span>
+                <a href="?month=<?php echo esc_attr($nextMonth); ?>&year=<?php echo esc_attr($nextYear); ?>" class="evp-btn"><?php esc_html_e( 'Next', 'events-calendar' ); ?> &#8250;</a>
+            </div>
+
+            <div class="evp-calendar">
+                <!-- Print day headers -->
+                <div class="evp-day-header"><?php esc_html_e( 'Sun', 'events-calendar' ); ?></div>
+                <div class="evp-day-header"><?php esc_html_e( 'Mon', 'events-calendar' ); ?></div>
+                <div class="evp-day-header"><?php esc_html_e( 'Tue', 'events-calendar' ); ?></div>
+                <div class="evp-day-header"><?php esc_html_e( 'Wed', 'events-calendar' ); ?></div>
+                <div class="evp-day-header"><?php esc_html_e( 'Thu', 'events-calendar' ); ?></div>
+                <div class="evp-day-header"><?php esc_html_e( 'Fri', 'events-calendar' ); ?></div>
+                <div class="evp-day-header"><?php esc_html_e( 'Sat', 'events-calendar' ); ?></div>
+
+                <?php
+                // Print blank cells before the first day of the month
+                for ($i = 1; $i < $firstDay; $i++) {
+                    echo '<div class="evp-day"></div>';
+                }
+
+                // Print days of the month
+                for ($day = 1; $day <= $numDays; $day++) {
+                    $currentDate = date('Y-m-d', strtotime($year . '-' . $month . '-' . $day));
+                    echo '<div class="evp-day">' . esc_html($day);
+
+                    // Add events for the corresponding day
+                    if (array_key_exists($currentDate, $events)) {
+                        foreach ($events[$currentDate] as $event) {
+                            echo '<a class="evp-event" href="' . esc_url(get_permalink($event['id'])) . '">' . esc_html($event['title']) . '</a>';
+                        }
+                    }
+
+                    echo '</div>';
+                }
+
+                // Print remaining blank cells after the last day of the month
+                $remainingCells = 7 - (($numDays + $firstDay - 1) % 7);
+                if ($remainingCells < 7) {
+                    for ($i = 0; $i < $remainingCells; $i++) {
+                        echo '<div class="evp-day"></div>';
+                    }
+                }
+                ?>
+            </div>
+        </div>
+        <?php
+        // Return the buffered content
+        return ob_get_clean();
+    }
+
+}

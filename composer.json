@@ -1,0 +1,16 @@
+{
+    "name": "jahid/events-calendar-plugin",
+    "description": "A event calendar wordpress plugin to display upcoming events",
+    "autoload": {
+        "psr-4": {
+            "Event_Calendar\\Includes\\": "includes/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Jahid Hasan",
+            "email": "jahid0676@gmail.com"
+        }
+    ],
+    "require": {}
+}
