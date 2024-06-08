@@ -32,6 +32,14 @@ The **Event Calendar** WordPress plugin simplifies event management on your webs
 - Use the `[event_calendar]` shortcode to display the event calendar with all events within your content.
 - Example: Add `[event_calendar]` to any post or page to embed the event calendar.
 
+## Screenshots
+
+### Admin Calendar
+![Admin Calendar Screenshot](https://raw.githubusercontent.com/jahidhasan018/events-calendar-plugin/main/Admin-Calendar-Screenshot.png)
+
+### Frontend Calendar
+![Frontend Calendar Screenshot](https://raw.githubusercontent.com/jahidhasan018/events-calendar-plugin/main/Frontend-Calendar-Screenshot.png)
+
 ## Additional Information
 
 ### Admin Styles
